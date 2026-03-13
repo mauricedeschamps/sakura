@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桜の名所リフト / Cherry Blossom Spots / 樱花名胜</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    <style>
+        /* Reset & Base (Dark Mode First) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background-color: #1a1a2e;
+            color: #eaeaea;
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        /* Light Mode (クリアモード) */
+        body.light-mode {
+            background-color: #f9f7f4;
+            color: #2c3e50;
+        }
+        body.light-mode .spot-card {
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        body.light-mode .lang-btn {
+            background-color: #e0e0e0;
+            color: #1a1a2e;
+        }
+        body.light-mode footer {
+            border-top-color: #ccc;
+        }
+        body.light-mode .theme-toggle {
+            background-color: #d4d4d4;
+            color: #2c3e50;
+        }
+        body.light-mode .back-btn {
+            background-color: #d4d4d4;
+            color: #2c3e50;
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            color: #ffb7c5;
+            text-shadow: 0 0 8px rgba(255,183,197,0.5);
+        }
+        .sub {
+            text-align: center;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        /* 言語ボタン & テーマ切り替え */
+        .lang-switcher, .theme-control {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .lang-btn, .theme-toggle, .back-btn {
+            background-color: #2a2a40;
+            border: none;
+            color: #eaeaea;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #4a4a6a;
+        }
+        .lang-btn:hover, .theme-toggle:hover, .back-btn:hover {
+            background-color: #3d3d5c;
+            transform: scale(1.02);
+        }
+        .lang-btn.active {
+            background-color: #c44569;
+            border-color: #ffb7c5;
+            color: white;
+        }
+        
+        .back-btn {
+            margin: 10px auto;
+            display: inline-block;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        /* カードグリッド */
+        .spots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .spot-card {
+            background-color: #16213e;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+            border: 1px solid #2e3b4e;
+            cursor: pointer;
+        }
+        .spot-card:hover {
+            transform: translateY(-6px);
+        }
+        .card-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        .card-img .placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #2a4d6e, #1a2f40);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffb7c5;
+            font-style: italic;
+            font-size: 1.2rem;
+        }
+        .card-content {
+            padding: 20px;
+        }
+        .card-title {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            color: #ffb7c5;
+        }
+        .card-location {
+            font-weight: bold;
+            color: #a3d8f0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card-location::before {
+            content: "📍";
+        }
+        .card-best-time {
+            background-color: #2a2a40;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            margin: 8px 0 12px;
+            border-left: 3px solid #c44569;
+        }
+        
+        /* 詳細ページ */
+        .detail-container {
+            background-color: #16213e;
+            border-radius: 32px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid #2e3b4e;
+        }
+        body.light-mode .detail-container {
+            background-color: #ffffff;
+        }
+        .detail-title {
+            font-size: 2.2rem;
+            color: #ffb7c5;
+            margin-bottom: 20px;
+        }
+        .detail-location {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #a3d8f0;
+        }
+        .detail-best-time {
+            background-color: #2a2a40;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 40px;
+            margin: 15px 0;
+            border-left: 4px solid #c44569;
+        }
+        .detail-desc {
+            font-size: 1.1rem;
+            margin: 25px 0;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+        .official-link {
+            display: inline-block;
+            background-color: #c44569;
+            color: white;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            margin: 20px 0 10px;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .official-link:hover {
+            background-color: #a13e5a;
+            transform: scale(1.02);
+        }
+
+        /* フッター */
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px 10px;
+            border-top: 1px solid #2e3b4e;
+            font-size: 0.9rem;
+        }
+        .contact-email {
+            color: #ffb7c5;
+            text-decoration: none;
+            font-weight: bold;
+            word-break: break-all;
+        }
+        .contact-email:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="main-title">🌸 桜の名所リフト</h1>
+    <div class="sub" id="main-sub">一生に一度は見たい絶景桜スポット</div>
+
+    <!-- 言語切り替えボタン -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="ja">🇯🇵 日本語</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+        <button class="lang-btn" data-lang="zh">🇨🇳 中文</button>
+    </div>
+
+    <!-- テーマ切り替え -->
+    <div class="theme-control">
+        <button class="theme-toggle" id="themeToggle">🌙 ダークモード / ☀️ クリアモード</button>
+    </div>
+
+    <!-- 戻るボタン (詳細表示時に表示) -->
+    <div class="nav-container" id="backButtonContainer" style="display: none;">
+        <button class="back-btn" id="backToList">← 一覧に戻る</button>
+    </div>
+
+    <!-- メインコンテンツ: 一覧表示エリア -->
+    <div id="listView">
+        <div class="spots-grid" id="spotsContainer"></div>
+    </div>
+
+    <!-- 詳細表示エリア (初期は非表示) -->
+    <div id="detailView" class="hidden">
+        <div class="detail-container" id="detailContent"></div>
+    </div>
+
+    <!-- フッター (記事提供を削除) -->
+    <footer>
+        <p>© 2026 桜の名所リフト</p>
+        <p>📧 お問い合わせ: <a href="mailto:mementomorikatsu@gmail.com" class="contact-email">mementomorikatsu@gmail.com</a></p>
+    </footer>
+
+    <script>
+        // スポットデータ (多言語対応、公式サイトURL追加)
+        const spotsData = {
+            ja: [
+                { id: 1, title: "紫雲出山", location: "香川県三豊市", bestTime: "見頃：2026年3月下旬～4月中旬", desc: "香川県三豊市の荘内半島にそびえる標高352メートルの紫雲出山の山頂は、眼下に広がる瀬戸内海の絶景スポットです。春になると、山頂を1000本もの桜が埋め尽くし、ピンク色の桜越しに広がる瀬戸内海のコントラストは人々を魅了しています。\n\nなお、2026年3月27日（金）～4月12日（日）の桜シーズン中は、徒歩で入山する場合以外は予約が必要です。", officialUrl: "https://www.example.com/shuyudeyama" },
+                { id: 2, title: "三春滝桜", location: "福島県", bestTime: "見頃：4月上旬〜中旬", desc: "福島県にある「三春滝桜」は、樹齢1000年以上と推定される国指定天然記念物のエドヒガン系ベニシダレザクラです。高さ13.5メートル、根回り11.3メートルという大きさにも目を引かれます。薄紅色の小さな花を枝いっぱいに咲かせ、その姿が滝のように見えることでも知られています。\n\nライトアップは18〜21時、開催時期は開花状況によって変わります。", officialUrl: "https://www.example.com/miharu" },
+                { id: 3, title: "能登鹿島駅", location: "石川県", bestTime: "見頃：4月中旬", desc: "能登半島・七尾湾側の穏やかな海沿いを走るローカル線「のと鉄道」は、全駅で桜が楽しめる全国的にも珍しい路線です。中でも「能登さくら駅」の愛称で親しまれる能登鹿島駅は、普段は静かな無人駅ですが、春になると約100本の桜がホームを覆い、海と桜の美しいコントラストを楽しむ多くの見物客で賑わいます。\n\nのと鉄道は、能登半島地震により土砂崩れなど50カ所に及ぶ被害を受けましたが、わずか3ヵ月で全線が復旧。その1週間後には桜が満開となり、折れた枝からも美しい花を咲かせた桜の下を列車が走る光景は、被災した地域住民にとって希望の光となりました。", officialUrl: "https://www.example.com/noto" },
+                { id: 4, title: "新河岸川", location: "埼玉県川越市", bestTime: "見頃：3月下旬〜4月上旬", desc: "普段、桜の名所として目黒川を訪れているなら、2026年は趣を変えて「小江戸」として知られる埼玉県の川越へ行ってみるのはいかがでしょうか。\n\n蔵造りの歴史的な街並みが残る街にある「川越氷川神社」の裏手には、芝生の堤防と桜並木に彩られた穏やかな新河岸川が流れています。\n\nベストタイミングは、2026年3月28日（土）から4月26日（日）まで開催される「小江戸川越春まつり」の期間中。3月29日（日）には、桜が咲き誇る川面をゆっくりと舟で進む舟遊（しゅうゆう）が楽しめます（要事前チケット購入）。", officialUrl: "https://www.example.com/shingashi" },
+                { id: 5, title: "大阪城公園", location: "大阪府", bestTime: "見頃：3月下旬〜4月上旬", desc: "約3000本の桜が咲き誇る大阪城公園は、園内各所が花見客の歓喜に包まれる、関西屈指の桜の名所です。\n\n中でも、天守閣と桜の共演を最も美しく堪能できるのが「西の丸庭園」。別途入園料は必要ですが、ソメイヨシノを中心に約300本が咲き乱れ、夜にはライトアップされた桜と闇夜に浮かび上がる「大阪城」の幻想的なコントラストも楽しめます。", officialUrl: "https://www.example.com/osakacastle" },
+                { id: 6, title: "牛久大仏", location: "茨城県", bestTime: "見頃：4月上旬〜中旬", desc: "高さ40階建てのビルに匹敵する巨大な牛久大仏。その足元に広がる「浄土庭園」の園内と街路樹では、春の訪れとともに、400本もの桜の木が大仏の足元を彩ります。巨大な大仏と桜の木々のスケールの対比には誰もが圧倒されるでしょう。\n\nさらに、4月中旬には芝桜が見頃を迎え、ショッキングピンクのカーペットが地面いっぱいに敷き詰められた光景も楽しめます。", officialUrl: "https://www.example.com/ushiku" },
+                { id: 7, title: "角館武家屋敷通り", location: "秋田県仙北市", bestTime: "見頃：4月中旬～下旬", desc: "江戸時代に栄えた城下町の景観を色濃く残す秋田県仙北市に位置する「角館武家屋敷通り」。桜の時期になると、この通りにはシックな黒板塀に400本ものシダレザクラの薄紅色が映え、時を忘れさせる光景を作り出します。\n\n約400年前、この地に越してきた大名・佐竹義明の妻が、嫁入り道具とともに持ち込んだ3本のシダレザクラの苗木が始まりだといわれています。現在では、国の天然記念物に指定されているシダレザクラが多くあります。", officialUrl: "https://www.example.com/kakunodate" }
+            ],
+            en: [
+                { id: 1, title: "Mount Shiyudeyama", location: "Kagawa Pref.", bestTime: "Late Mar–mid Apr 2026", desc: "At 352m above sea level, the summit offers a spectacular view of the Seto Inland Sea. In spring, 1,000 cherry trees cover the mountaintop, creating a stunning pink contrast with the sea.\n\nReservation required during peak season (Mar 27–Apr 12, 2026) except for walk-in visitors.", officialUrl: "https://www.example.com/shuyudeyama" },
+                { id: 2, title: "Miharu Takizakura", location: "Fukushima Pref.", bestTime: "Early–mid April", desc: "Designated as a national natural treasure, this weeping cherry tree is estimated to be over 1,000 years old. Standing 13.5m tall with a root circumference of 11.3m, its branches are covered in pale pink flowers that cascade like a waterfall.\n\nIllumination from 6-9pm (dates vary with blooming).", officialUrl: "https://www.example.com/miharu" },
+                { id: 3, title: "Noto Kashima Station", location: "Ishikawa Pref.", bestTime: "Mid April", desc: "This unmanned station on the Noto Railway line transforms in spring when about 100 cherry trees frame the platforms, creating a beautiful contrast with the sea. After the 2024 Noto Peninsula earthquake, the railway was restored in just 3 months, and the cherry blossoms bloomed beautifully even on broken branches, becoming a symbol of hope.", officialUrl: "https://www.example.com/noto" },
+                { id: 4, title: "Shingashi River", location: "Kawagoe, Saitama", bestTime: "Late Mar–early Apr", desc: "Behind the historic Kawagoe Hikawa Shrine, the Shingashi River offers a peaceful cherry blossom tunnel. During the Little Edo Kawagoe Spring Festival (Mar 28–Apr 26, 2026), you can enjoy boat tours through the cherry blossoms on Mar 29 (advance ticket required).", officialUrl: "https://www.example.com/shingashi" },
+                { id: 5, title: "Osaka Castle Park", location: "Osaka", bestTime: "Late Mar–early Apr", desc: "With approximately 3,000 cherry trees, this is one of Kansai's premier cherry blossom spots. The Nishinomaru Garden offers the best view of the castle keep framed by about 300 cherry trees, with nighttime illuminations creating a magical atmosphere.", officialUrl: "https://www.example.com/osakacastle" },
+                { id: 6, title: "Ushiku Daibutsu", location: "Ibaraki Pref.", bestTime: "Early–mid April", desc: "The giant Ushiku Buddha statue stands 120m tall. At its feet, 400 cherry trees bloom in the Jodo Garden, creating an impressive scale contrast. In mid-April, pink moss phlox also blankets the ground for a double flower experience.", officialUrl: "https://www.example.com/ushiku" },
+                { id: 7, title: "Kakunodate Samurai District", location: "Akita Pref.", bestTime: "Mid–late April", desc: "This well-preserved samurai district features 400 weeping cherry trees against black wooden fences. The trees originated from 3 seedlings brought by a daimyo's wife 400 years ago. Many are now designated as national natural treasures.", officialUrl: "https://www.example.com/kakunodate" }
+            ],
+            zh: [
+                { id: 1, title: "紫云出山", location: "香川县三丰市", bestTime: "观赏期：2026年3月下旬～4月中旬", desc: "海拔352米的紫云出山山顶可俯瞰濑户内海。春季1000棵樱花覆盖山顶，粉色的樱花与蓝色大海形成绝美对比。\n\n2026年3月27日～4月12日樱花季期间，除徒步登山外需预约。", officialUrl: "https://www.example.com/shuyudeyama" },
+                { id: 2, title: "三春泷樱", location: "福岛县", bestTime: "观赏期：4月上旬～中旬", desc: "树龄超过1000年的国家天然纪念物，是一棵江户彼岸樱系的垂枝樱。高13.5米，树干周长11.3米，满树淡粉色小花如瀑布般倾泻。\n\n夜间点灯时间为18-21点，具体日期根据开花情况而定。", officialUrl: "https://www.example.com/miharu" },
+                { id: 3, title: "能登鹿岛站", location: "石川县", bestTime: "观赏期：4月中旬", desc: "能登铁路的无人站，春季约100棵樱花覆盖站台，与大海形成美丽对比。2024年能登半岛地震后，铁路仅用3个月修复，樱花在断枝上依然盛开，成为希望的象征。", officialUrl: "https://www.example.com/noto" },
+                { id: 4, title: "新河岸川", location: "埼玉县川越市", bestTime: "观赏期：3月下旬～4月上旬", desc: "位于川越冰川神社后的新河岸川，两岸樱花形成隧道。在小江户川越春季祭典期间（2026年3月28日～4月26日），3月29日可乘船欣赏樱花（需提前购票）。", officialUrl: "https://www.example.com/shingashi" },
+                { id: 5, title: "大阪城公园", location: "大阪府", bestTime: "观赏期：3月下旬～4月上旬", desc: "约3000棵樱花，是关西屈指的赏樱名所。西之丸庭园可欣赏天守阁与约300棵樱花的最佳角度，夜间点灯更显梦幻。", officialUrl: "https://www.example.com/osakacastle" },
+                { id: 6, title: "牛久大佛", location: "茨城县", bestTime: "观赏期：4月上旬～中旬", desc: "高120米的牛久大佛脚下，净土庭园内400棵樱花绽放。4月中旬还可欣赏地面的芝樱，形成双重花景。", officialUrl: "https://www.example.com/ushiku" },
+                { id: 7, title: "角馆武家屋敷通", location: "秋田县仙北市", bestTime: "观赏期：4月中旬～下旬", desc: "保存完好的武家屋敷街道，400棵垂枝樱与黑色板墙相映成趣。起源于400年前大名妻子带来的3棵苗木，现多棵被指定为国家天然纪念物。", officialUrl: "https://www.example.com/kakunodate" }
+            ]
+        };
+
+        let currentLang = 'ja';
+        let isDark = true;
+        let currentSpotId = null;
+
+        const container = document.getElementById('spotsContainer');
+        const detailView = document.getElementById('detailView');
+        const listView = document.getElementById('listView');
+        const detailContent = document.getElementById('detailContent');
+        const backButtonContainer = document.getElementById('backButtonContainer');
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const themeToggle = document.getElementById('themeToggle');
+        const mainTitle = document.getElementById('main-title');
+        const mainSub = document.getElementById('main-sub');
+
+        const titles = {
+            ja: '🌸 桜の名所リフト',
+            en: '🌸 Cherry Blossom Spots',
+            zh: '🌸 樱花名胜'
+        };
+        const subs = {
+            ja: '一生に一度は見たい絶景桜スポット',
+            en: 'Must-see cherry blossom spots in Japan',
+            zh: '一生必看的樱花名胜'
+        };
+
+        // 一覧表示
+        function renderSpots(lang) {
+            const data = spotsData[lang];
+            container.innerHTML = '';
+            data.forEach(spot => {
+                const card = document.createElement('div');
+                card.className = 'spot-card';
+                card.setAttribute('data-id', spot.id);
+                card.innerHTML = `
+                    <div class="card-img">
+                        <div class="placeholder">🌸 ${spot.title}</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${spot.title}</div>
+                        <div class="card-location">${spot.location}</div>
+                        <div class="card-best-time">${spot.bestTime}</div>
+                    </div>
+                `;
+                card.addEventListener('click', () => showDetail(spot.id));
+                container.appendChild(card);
+            });
+        }
+
+        // 詳細表示
+        function showDetail(spotId) {
+            currentSpotId = spotId;
+            const spot = spotsData[currentLang].find(s => s.id === spotId);
+            if (!spot) return;
+
+            const officialLinkText = {
+                ja: '公式ホームページへ',
+                en: 'Official Website',
+                zh: '官方网站'
+            };
+
+            detailContent.innerHTML = `
+                <div class="detail-title">${spot.title}</div>
+                <div class="detail-location">📍 ${spot.location}</div>
+                <div class="detail-best-time">${spot.bestTime}</div>
+                <div class="detail-desc">${spot.desc.replace(/\n/g, '<br>')}</div>
+                <a href="${spot.officialUrl}" class="official-link" target="_blank" rel="noopener">${officialLinkText[currentLang]} →</a>
+            `;
+
+            listView.style.display = 'none';
+            detailView.classList.remove('hidden');
+            backButtonContainer.style.display = 'flex';
+            mainTitle.style.display = 'none';
+            mainSub.style.display = 'none';
+        }
+
+        // 一覧に戻る
+        function backToList() {
+            listView.style.display = 'block';
+            detailView.classList.add('hidden');
+            backButtonContainer.style.display = 'none';
+            mainTitle.style.display = 'block';
+            mainSub.style.display = 'block';
+            currentSpotId = null;
+        }
+
+        // 言語切替時は一覧に戻る
+        function changeLanguage(lang) {
+            currentLang = lang;
+            renderSpots(currentLang);
+            if (currentSpotId) {
+                // 詳細表示中なら、そのスポットの詳細を更新（IDが存在する場合）
+                const spotExists = spotsData[currentLang].some(s => s.id === currentSpotId);
+                if (spotExists) {
+                    showDetail(currentSpotId);
+                } else {
+                    backToList();
+                }
+            } else {
+                backToList();
+            }
+            mainTitle.textContent = titles[lang];
+            mainSub.textContent = subs[lang];
+        }
+
+        // イベントリスナー
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                langBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                changeLanguage(btn.dataset.lang);
+            });
+        });
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            isDark = !document.body.classList.contains('light-mode');
+            themeToggle.innerHTML = isDark ? '🌙 ダークモード / ☀️ クリアモード' : '☀️ クリアモード / 🌙 ダークモード';
+        });
+
+        document.getElementById('backToList').addEventListener('click', backToList);
+
+        // 初期表示
+        renderSpots('ja');
+
+        // Service Worker登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.log('Service Worker error:', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
