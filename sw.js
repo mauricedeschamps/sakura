@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sakura-lift-v2';
+const CACHE_NAME = 'sakura-list-v2';
 const urlsToCache = [
   '/',
   'index.html',
