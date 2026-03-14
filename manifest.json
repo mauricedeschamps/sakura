@@ -2,7 +2,7 @@
   "name": "桜の名所リスト - 日本の絶景桜スポット",
   "short_name": "Cherry blossoms",
   "description": "一生に一度は見たい日本の桜名所を紹介するアプリ",
-  "start_url": "/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#1a1a2e",
