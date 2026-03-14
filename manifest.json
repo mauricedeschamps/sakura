@@ -1,6 +1,6 @@
 {
-  "name": "桜の名所リフト - 日本の絶景桜スポット",
-  "short_name": "Cherry blossom",
+  "name": "桜の名所リスト - 日本の絶景桜スポット",
+  "short_name": "Cherry blossoms",
   "description": "一生に一度は見たい日本の桜名所を紹介するアプリ",
   "start_url": "/",
   "display": "standalone",
