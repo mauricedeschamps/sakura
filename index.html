@@ -47,6 +47,9 @@
             background-color: #d4d4d4;
             color: #2c3e50;
         }
+        body.light-mode .detail-container {
+            background-color: #ffffff;
+        }
 
         /* Header */
         h1 {
@@ -123,24 +126,17 @@
         .card-img {
             width: 100%;
             height: 200px;
-            object-fit: cover;
+            overflow: hidden;
             background-color: #0f3460;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #aaa;
-            font-size: 0.9rem;
         }
-        .card-img .placeholder {
+        .card-img img {
             width: 100%;
             height: 100%;
-            background: linear-gradient(145deg, #2a4d6e, #1a2f40);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffb7c5;
-            font-style: italic;
-            font-size: 1.2rem;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .spot-card:hover .card-img img {
+            transform: scale(1.05);
         }
         .card-content {
             padding: 20px;
@@ -179,8 +175,13 @@
             margin: 30px 0;
             border: 1px solid #2e3b4e;
         }
-        body.light-mode .detail-container {
-            background-color: #ffffff;
+        .detail-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
         .detail-title {
             font-size: 2.2rem;
@@ -245,6 +246,18 @@
         .hidden {
             display: none;
         }
+
+        /* ローディング/エラー表示 */
+        .image-error {
+            background: linear-gradient(145deg, #2a4d6e, #1a2f40);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffb7c5;
+            font-style: italic;
+            height: 100%;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -278,41 +291,209 @@
         <div class="detail-container" id="detailContent"></div>
     </div>
 
-    <!-- フッター (記事提供を削除) -->
+    <!-- フッター -->
     <footer>
         <p>© 2026 桜の名所リフト</p>
         <p>📧 お問い合わせ: <a href="mailto:mementomorikatsu@gmail.com" class="contact-email">mementomorikatsu@gmail.com</a></p>
     </footer>
 
     <script>
-        // スポットデータ (多言語対応、公式サイトURL追加)
+        // スポットデータ (画像URL追加)
         const spotsData = {
             ja: [
-                { id: 1, title: "紫雲出山", location: "香川県三豊市", bestTime: "見頃：2026年3月下旬～4月中旬", desc: "香川県三豊市の荘内半島にそびえる標高352メートルの紫雲出山の山頂は、眼下に広がる瀬戸内海の絶景スポットです。春になると、山頂を1000本もの桜が埋め尽くし、ピンク色の桜越しに広がる瀬戸内海のコントラストは人々を魅了しています。\n\nなお、2026年3月27日（金）～4月12日（日）の桜シーズン中は、徒歩で入山する場合以外は予約が必要です。", officialUrl: "https://www.example.com/shuyudeyama" },
-                { id: 2, title: "三春滝桜", location: "福島県", bestTime: "見頃：4月上旬〜中旬", desc: "福島県にある「三春滝桜」は、樹齢1000年以上と推定される国指定天然記念物のエドヒガン系ベニシダレザクラです。高さ13.5メートル、根回り11.3メートルという大きさにも目を引かれます。薄紅色の小さな花を枝いっぱいに咲かせ、その姿が滝のように見えることでも知られています。\n\nライトアップは18〜21時、開催時期は開花状況によって変わります。", officialUrl: "https://www.example.com/miharu" },
-                { id: 3, title: "能登鹿島駅", location: "石川県", bestTime: "見頃：4月中旬", desc: "能登半島・七尾湾側の穏やかな海沿いを走るローカル線「のと鉄道」は、全駅で桜が楽しめる全国的にも珍しい路線です。中でも「能登さくら駅」の愛称で親しまれる能登鹿島駅は、普段は静かな無人駅ですが、春になると約100本の桜がホームを覆い、海と桜の美しいコントラストを楽しむ多くの見物客で賑わいます。\n\nのと鉄道は、能登半島地震により土砂崩れなど50カ所に及ぶ被害を受けましたが、わずか3ヵ月で全線が復旧。その1週間後には桜が満開となり、折れた枝からも美しい花を咲かせた桜の下を列車が走る光景は、被災した地域住民にとって希望の光となりました。", officialUrl: "https://www.example.com/noto" },
-                { id: 4, title: "新河岸川", location: "埼玉県川越市", bestTime: "見頃：3月下旬〜4月上旬", desc: "普段、桜の名所として目黒川を訪れているなら、2026年は趣を変えて「小江戸」として知られる埼玉県の川越へ行ってみるのはいかがでしょうか。\n\n蔵造りの歴史的な街並みが残る街にある「川越氷川神社」の裏手には、芝生の堤防と桜並木に彩られた穏やかな新河岸川が流れています。\n\nベストタイミングは、2026年3月28日（土）から4月26日（日）まで開催される「小江戸川越春まつり」の期間中。3月29日（日）には、桜が咲き誇る川面をゆっくりと舟で進む舟遊（しゅうゆう）が楽しめます（要事前チケット購入）。", officialUrl: "https://www.example.com/shingashi" },
-                { id: 5, title: "大阪城公園", location: "大阪府", bestTime: "見頃：3月下旬〜4月上旬", desc: "約3000本の桜が咲き誇る大阪城公園は、園内各所が花見客の歓喜に包まれる、関西屈指の桜の名所です。\n\n中でも、天守閣と桜の共演を最も美しく堪能できるのが「西の丸庭園」。別途入園料は必要ですが、ソメイヨシノを中心に約300本が咲き乱れ、夜にはライトアップされた桜と闇夜に浮かび上がる「大阪城」の幻想的なコントラストも楽しめます。", officialUrl: "https://www.example.com/osakacastle" },
-                { id: 6, title: "牛久大仏", location: "茨城県", bestTime: "見頃：4月上旬〜中旬", desc: "高さ40階建てのビルに匹敵する巨大な牛久大仏。その足元に広がる「浄土庭園」の園内と街路樹では、春の訪れとともに、400本もの桜の木が大仏の足元を彩ります。巨大な大仏と桜の木々のスケールの対比には誰もが圧倒されるでしょう。\n\nさらに、4月中旬には芝桜が見頃を迎え、ショッキングピンクのカーペットが地面いっぱいに敷き詰められた光景も楽しめます。", officialUrl: "https://www.example.com/ushiku" },
-                { id: 7, title: "角館武家屋敷通り", location: "秋田県仙北市", bestTime: "見頃：4月中旬～下旬", desc: "江戸時代に栄えた城下町の景観を色濃く残す秋田県仙北市に位置する「角館武家屋敷通り」。桜の時期になると、この通りにはシックな黒板塀に400本ものシダレザクラの薄紅色が映え、時を忘れさせる光景を作り出します。\n\n約400年前、この地に越してきた大名・佐竹義明の妻が、嫁入り道具とともに持ち込んだ3本のシダレザクラの苗木が始まりだといわれています。現在では、国の天然記念物に指定されているシダレザクラが多くあります。", officialUrl: "https://www.example.com/kakunodate" }
+                { 
+                    id: 1, 
+                    title: "紫雲出山", 
+                    location: "香川県三豊市", 
+                    bestTime: "見頃：2026年3月下旬～4月中旬", 
+                    desc: "香川県三豊市の荘内半島にそびえる標高352メートルの紫雲出山の山頂は、眼下に広がる瀬戸内海の絶景スポットです。春になると、山頂を1000本もの桜が埋め尽くし、ピンク色の桜越しに広がる瀬戸内海のコントラストは人々を魅了しています。\n\nなお、2026年3月27日（金）～4月12日（日）の桜シーズン中は、徒歩で入山する場合以外は予約が必要です。",
+                    imageUrl: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&auto=format", // 桜と海のイメージ
+                    officialUrl: "https://www.my-kagawa.jp/shuyudeyama"
+                },
+                { 
+                    id: 2, 
+                    title: "三春滝桜", 
+                    location: "福島県", 
+                    bestTime: "見頃：4月上旬〜中旬", 
+                    desc: "福島県にある「三春滝桜」は、樹齢1000年以上と推定される国指定天然記念物のエドヒガン系ベニシダレザクラです。高さ13.5メートル、根回り11.3メートルという大きさにも目を引かれます。薄紅色の小さな花を枝いっぱいに咲かせ、その姿が滝のように見えることでも知られています。\n\nライトアップは18〜21時、開催時期は開花状況によって変わります。",
+                    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&auto=format", // 滝桜風
+                    officialUrl: "https://www.town.miharu.fukushima.jp/soshiki/20/takizakura.html"
+                },
+                { 
+                    id: 3, 
+                    title: "能登鹿島駅", 
+                    location: "石川県", 
+                    bestTime: "見頃：4月中旬", 
+                    desc: "能登半島・七尾湾側の穏やかな海沿いを走るローカル線「のと鉄道」は、全駅で桜が楽しめる全国的にも珍しい路線です。中でも「能登さくら駅」の愛称で親しまれる能登鹿島駅は、普段は静かな無人駅ですが、春になると約100本の桜がホームを覆い、海と桜の美しいコントラストを楽しむ多くの見物客で賑わいます。\n\nのと鉄道は、能登半島地震により土砂崩れなど50カ所に及ぶ被害を受けましたが、わずか3ヵ月で全線が復旧。その1週間後には桜が満開となり、折れた枝からも美しい花を咲かせた桜の下を列車が走る光景は、被災した地域住民にとって希望の光となりました。",
+                    imageUrl: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&auto=format", // 桜と駅のイメージ
+                    officialUrl: "https://www.nototetsu.co.jp/"
+                },
+                { 
+                    id: 4, 
+                    title: "新河岸川", 
+                    location: "埼玉県川越市", 
+                    bestTime: "見頃：3月下旬〜4月上旬", 
+                    desc: "普段、桜の名所として目黒川を訪れているなら、2026年は趣を変えて「小江戸」として知られる埼玉県の川越へ行ってみるのはいかがでしょうか。\n\n蔵造りの歴史的な街並みが残る街にある「川越氷川神社」の裏手には、芝生の堤防と桜並木に彩られた穏やかな新河岸川が流れています。\n\nベストタイミングは、2026年3月28日（土）から4月26日（日）まで開催される「小江戸川越春まつり」の期間中。3月29日（日）には、桜が咲き誇る川面をゆっくりと舟で進む舟遊（しゅうゆう）が楽しめます（要事前チケット購入）。",
+                    imageUrl: "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&auto=format", // 川と桜
+                    officialUrl: "https://www.kawagoe.com/"
+                },
+                { 
+                    id: 5, 
+                    title: "大阪城公園", 
+                    location: "大阪府", 
+                    bestTime: "見頃：3月下旬〜4月上旬", 
+                    desc: "約3000本の桜が咲き誇る大阪城公園は、園内各所が花見客の歓喜に包まれる、関西屈指の桜の名所です。\n\n中でも、天守閣と桜の共演を最も美しく堪能できるのが「西の丸庭園」。別途入園料は必要ですが、ソメイヨシノを中心に約300本が咲き乱れ、夜にはライトアップされた桜と闇夜に浮かび上がる「大阪城」の幻想的なコントラストも楽しめます。",
+                    imageUrl: "https://images.unsplash.com/photo-1569334113495-d9d6c7d4c3b1?w=800&auto=format", // 城と桜
+                    officialUrl: "https://www.osakacastlepark.jp/"
+                },
+                { 
+                    id: 6, 
+                    title: "牛久大仏", 
+                    location: "茨城県", 
+                    bestTime: "見頃：4月上旬〜中旬", 
+                    desc: "高さ40階建てのビルに匹敵する巨大な牛久大仏。その足元に広がる「浄土庭園」の園内と街路樹では、春の訪れとともに、400本もの桜の木が大仏の足元を彩ります。巨大な大仏と桜の木々のスケールの対比には誰もが圧倒されるでしょう。\n\nさらに、4月中旬には芝桜が見頃を迎え、ショッキングピンクのカーペットが地面いっぱいに敷き詰められた光景も楽しめます。",
+                    imageUrl: "https://images.unsplash.com/photo-1504898770365-14aac6e6c30d?w=800&auto=format", // 大仏と桜のイメージ
+                    officialUrl: "https://www.ushikudaibutsu.or.jp/"
+                },
+                { 
+                    id: 7, 
+                    title: "角館武家屋敷通り", 
+                    location: "秋田県仙北市", 
+                    bestTime: "見頃：4月中旬～下旬", 
+                    desc: "江戸時代に栄えた城下町の景観を色濃く残す秋田県仙北市に位置する「角館武家屋敷通り」。桜の時期になると、この通りにはシックな黒板塀に400本ものシダレザクラの薄紅色が映え、時を忘れさせる光景を作り出します。\n\n約400年前、この地に越してきた大名・佐竹義明の妻が、嫁入り道具とともに持ち込んだ3本のシダレザクラの苗木が始まりだといわれています。現在では、国の天然記念物に指定されているシダレザクラが多くあります。",
+                    imageUrl: "https://images.unsplash.com/photo-1558531307-b5ecba6e5a6c?w=800&auto=format", // 武家屋敷と桜
+                    officialUrl: "https://www.city.semboku.akita.jp/"
+                }
             ],
             en: [
-                { id: 1, title: "Mount Shiyudeyama", location: "Kagawa Pref.", bestTime: "Late Mar–mid Apr 2026", desc: "At 352m above sea level, the summit offers a spectacular view of the Seto Inland Sea. In spring, 1,000 cherry trees cover the mountaintop, creating a stunning pink contrast with the sea.\n\nReservation required during peak season (Mar 27–Apr 12, 2026) except for walk-in visitors.", officialUrl: "https://www.example.com/shuyudeyama" },
-                { id: 2, title: "Miharu Takizakura", location: "Fukushima Pref.", bestTime: "Early–mid April", desc: "Designated as a national natural treasure, this weeping cherry tree is estimated to be over 1,000 years old. Standing 13.5m tall with a root circumference of 11.3m, its branches are covered in pale pink flowers that cascade like a waterfall.\n\nIllumination from 6-9pm (dates vary with blooming).", officialUrl: "https://www.example.com/miharu" },
-                { id: 3, title: "Noto Kashima Station", location: "Ishikawa Pref.", bestTime: "Mid April", desc: "This unmanned station on the Noto Railway line transforms in spring when about 100 cherry trees frame the platforms, creating a beautiful contrast with the sea. After the 2024 Noto Peninsula earthquake, the railway was restored in just 3 months, and the cherry blossoms bloomed beautifully even on broken branches, becoming a symbol of hope.", officialUrl: "https://www.example.com/noto" },
-                { id: 4, title: "Shingashi River", location: "Kawagoe, Saitama", bestTime: "Late Mar–early Apr", desc: "Behind the historic Kawagoe Hikawa Shrine, the Shingashi River offers a peaceful cherry blossom tunnel. During the Little Edo Kawagoe Spring Festival (Mar 28–Apr 26, 2026), you can enjoy boat tours through the cherry blossoms on Mar 29 (advance ticket required).", officialUrl: "https://www.example.com/shingashi" },
-                { id: 5, title: "Osaka Castle Park", location: "Osaka", bestTime: "Late Mar–early Apr", desc: "With approximately 3,000 cherry trees, this is one of Kansai's premier cherry blossom spots. The Nishinomaru Garden offers the best view of the castle keep framed by about 300 cherry trees, with nighttime illuminations creating a magical atmosphere.", officialUrl: "https://www.example.com/osakacastle" },
-                { id: 6, title: "Ushiku Daibutsu", location: "Ibaraki Pref.", bestTime: "Early–mid April", desc: "The giant Ushiku Buddha statue stands 120m tall. At its feet, 400 cherry trees bloom in the Jodo Garden, creating an impressive scale contrast. In mid-April, pink moss phlox also blankets the ground for a double flower experience.", officialUrl: "https://www.example.com/ushiku" },
-                { id: 7, title: "Kakunodate Samurai District", location: "Akita Pref.", bestTime: "Mid–late April", desc: "This well-preserved samurai district features 400 weeping cherry trees against black wooden fences. The trees originated from 3 seedlings brought by a daimyo's wife 400 years ago. Many are now designated as national natural treasures.", officialUrl: "https://www.example.com/kakunodate" }
+                { 
+                    id: 1, 
+                    title: "Mount Shiyudeyama", 
+                    location: "Kagawa Pref.", 
+                    bestTime: "Late Mar–mid Apr 2026", 
+                    desc: "At 352m above sea level, the summit offers a spectacular view of the Seto Inland Sea. In spring, 1,000 cherry trees cover the mountaintop, creating a stunning pink contrast with the sea.\n\nReservation required during peak season (Mar 27–Apr 12, 2026) except for walk-in visitors.",
+                    imageUrl: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&auto=format",
+                    officialUrl: "https://www.my-kagawa.jp/shuyudeyama"
+                },
+                { 
+                    id: 2, 
+                    title: "Miharu Takizakura", 
+                    location: "Fukushima Pref.", 
+                    bestTime: "Early–mid April", 
+                    desc: "Designated as a national natural treasure, this weeping cherry tree is estimated to be over 1,000 years old. Standing 13.5m tall with a root circumference of 11.3m, its branches are covered in pale pink flowers that cascade like a waterfall.\n\nIllumination from 6-9pm (dates vary with blooming).",
+                    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&auto=format",
+                    officialUrl: "https://www.town.miharu.fukushima.jp/soshiki/20/takizakura.html"
+                },
+                { 
+                    id: 3, 
+                    title: "Noto Kashima Station", 
+                    location: "Ishikawa Pref.", 
+                    bestTime: "Mid April", 
+                    desc: "This unmanned station on the Noto Railway line transforms in spring when about 100 cherry trees frame the platforms, creating a beautiful contrast with the sea. After the 2024 Noto Peninsula earthquake, the railway was restored in just 3 months, and the cherry blossoms bloomed beautifully even on broken branches, becoming a symbol of hope.",
+                    imageUrl: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&auto=format",
+                    officialUrl: "https://www.nototetsu.co.jp/"
+                },
+                { 
+                    id: 4, 
+                    title: "Shingashi River", 
+                    location: "Kawagoe, Saitama", 
+                    bestTime: "Late Mar–early Apr", 
+                    desc: "Behind the historic Kawagoe Hikawa Shrine, the Shingashi River offers a peaceful cherry blossom tunnel. During the Little Edo Kawagoe Spring Festival (Mar 28–Apr 26, 2026), you can enjoy boat tours through the cherry blossoms on Mar 29 (advance ticket required).",
+                    imageUrl: "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&auto=format",
+                    officialUrl: "https://www.kawagoe.com/"
+                },
+                { 
+                    id: 5, 
+                    title: "Osaka Castle Park", 
+                    location: "Osaka", 
+                    bestTime: "Late Mar–early Apr", 
+                    desc: "With approximately 3,000 cherry trees, this is one of Kansai's premier cherry blossom spots. The Nishinomaru Garden offers the best view of the castle keep framed by about 300 cherry trees, with nighttime illuminations creating a magical atmosphere.",
+                    imageUrl: "https://images.unsplash.com/photo-1569334113495-d9d6c7d4c3b1?w=800&auto=format",
+                    officialUrl: "https://www.osakacastlepark.jp/"
+                },
+                { 
+                    id: 6, 
+                    title: "Ushiku Daibutsu", 
+                    location: "Ibaraki Pref.", 
+                    bestTime: "Early–mid April", 
+                    desc: "The giant Ushiku Buddha statue stands 120m tall. At its feet, 400 cherry trees bloom in the Jodo Garden, creating an impressive scale contrast. In mid-April, pink moss phlox also blankets the ground for a double flower experience.",
+                    imageUrl: "https://images.unsplash.com/photo-1504898770365-14aac6e6c30d?w=800&auto=format",
+                    officialUrl: "https://www.ushikudaibutsu.or.jp/"
+                },
+                { 
+                    id: 7, 
+                    title: "Kakunodate Samurai District", 
+                    location: "Akita Pref.", 
+                    bestTime: "Mid–late April", 
+                    desc: "This well-preserved samurai district features 400 weeping cherry trees against black wooden fences. The trees originated from 3 seedlings brought by a daimyo's wife 400 years ago. Many are now designated as national natural treasures.",
+                    imageUrl: "https://images.unsplash.com/photo-1558531307-b5ecba6e5a6c?w=800&auto=format",
+                    officialUrl: "https://www.city.semboku.akita.jp/"
+                }
             ],
             zh: [
-                { id: 1, title: "紫云出山", location: "香川县三丰市", bestTime: "观赏期：2026年3月下旬～4月中旬", desc: "海拔352米的紫云出山山顶可俯瞰濑户内海。春季1000棵樱花覆盖山顶，粉色的樱花与蓝色大海形成绝美对比。\n\n2026年3月27日～4月12日樱花季期间，除徒步登山外需预约。", officialUrl: "https://www.example.com/shuyudeyama" },
-                { id: 2, title: "三春泷樱", location: "福岛县", bestTime: "观赏期：4月上旬～中旬", desc: "树龄超过1000年的国家天然纪念物，是一棵江户彼岸樱系的垂枝樱。高13.5米，树干周长11.3米，满树淡粉色小花如瀑布般倾泻。\n\n夜间点灯时间为18-21点，具体日期根据开花情况而定。", officialUrl: "https://www.example.com/miharu" },
-                { id: 3, title: "能登鹿岛站", location: "石川县", bestTime: "观赏期：4月中旬", desc: "能登铁路的无人站，春季约100棵樱花覆盖站台，与大海形成美丽对比。2024年能登半岛地震后，铁路仅用3个月修复，樱花在断枝上依然盛开，成为希望的象征。", officialUrl: "https://www.example.com/noto" },
-                { id: 4, title: "新河岸川", location: "埼玉县川越市", bestTime: "观赏期：3月下旬～4月上旬", desc: "位于川越冰川神社后的新河岸川，两岸樱花形成隧道。在小江户川越春季祭典期间（2026年3月28日～4月26日），3月29日可乘船欣赏樱花（需提前购票）。", officialUrl: "https://www.example.com/shingashi" },
-                { id: 5, title: "大阪城公园", location: "大阪府", bestTime: "观赏期：3月下旬～4月上旬", desc: "约3000棵樱花，是关西屈指的赏樱名所。西之丸庭园可欣赏天守阁与约300棵樱花的最佳角度，夜间点灯更显梦幻。", officialUrl: "https://www.example.com/osakacastle" },
-                { id: 6, title: "牛久大佛", location: "茨城县", bestTime: "观赏期：4月上旬～中旬", desc: "高120米的牛久大佛脚下，净土庭园内400棵樱花绽放。4月中旬还可欣赏地面的芝樱，形成双重花景。", officialUrl: "https://www.example.com/ushiku" },
-                { id: 7, title: "角馆武家屋敷通", location: "秋田县仙北市", bestTime: "观赏期：4月中旬～下旬", desc: "保存完好的武家屋敷街道，400棵垂枝樱与黑色板墙相映成趣。起源于400年前大名妻子带来的3棵苗木，现多棵被指定为国家天然纪念物。", officialUrl: "https://www.example.com/kakunodate" }
+                { 
+                    id: 1, 
+                    title: "紫云出山", 
+                    location: "香川县三丰市", 
+                    bestTime: "观赏期：2026年3月下旬～4月中旬", 
+                    desc: "海拔352米的紫云出山山顶可俯瞰濑户内海。春季1000棵樱花覆盖山顶，粉色的樱花与蓝色大海形成绝美对比。\n\n2026年3月27日～4月12日樱花季期间，除徒步登山外需预约。",
+                    imageUrl: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&auto=format",
+                    officialUrl: "https://www.my-kagawa.jp/shuyudeyama"
+                },
+                { 
+                    id: 2, 
+                    title: "三春泷樱", 
+                    location: "福岛县", 
+                    bestTime: "观赏期：4月上旬～中旬", 
+                    desc: "树龄超过1000年的国家天然纪念物，是一棵江户彼岸樱系的垂枝樱。高13.5米，树干周长11.3米，满树淡粉色小花如瀑布般倾泻。\n\n夜间点灯时间为18-21点，具体日期根据开花情况而定。",
+                    imageUrl: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&auto=format",
+                    officialUrl: "https://www.town.miharu.fukushima.jp/soshiki/20/takizakura.html"
+                },
+                { 
+                    id: 3, 
+                    title: "能登鹿岛站", 
+                    location: "石川县", 
+                    bestTime: "观赏期：4月中旬", 
+                    desc: "能登铁路的无人站，春季约100棵樱花覆盖站台，与大海形成美丽对比。2024年能登半岛地震后，铁路仅用3个月修复，樱花在断枝上依然盛开，成为希望的象征。",
+                    imageUrl: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&auto=format",
+                    officialUrl: "https://www.nototetsu.co.jp/"
+                },
+                { 
+                    id: 4, 
+                    title: "新河岸川", 
+                    location: "埼玉县川越市", 
+                    bestTime: "观赏期：3月下旬～4月上旬", 
+                    desc: "位于川越冰川神社后的新河岸川，两岸樱花形成隧道。在小江户川越春季祭典期间（2026年3月28日～4月26日），3月29日可乘船欣赏樱花（需提前购票）。",
+                    imageUrl: "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&auto=format",
+                    officialUrl: "https://www.kawagoe.com/"
+                },
+                { 
+                    id: 5, 
+                    title: "大阪城公园", 
+                    location: "大阪府", 
+                    bestTime: "观赏期：3月下旬～4月上旬", 
+                    desc: "约3000棵樱花，是关西屈指的赏樱名所。西之丸庭园可欣赏天守阁与约300棵樱花的最佳角度，夜间点灯更显梦幻。",
+                    imageUrl: "https://images.unsplash.com/photo-1569334113495-d9d6c7d4c3b1?w=800&auto=format",
+                    officialUrl: "https://www.osakacastlepark.jp/"
+                },
+                { 
+                    id: 6, 
+                    title: "牛久大佛", 
+                    location: "茨城县", 
+                    bestTime: "观赏期：4月上旬～中旬", 
+                    desc: "高120米的牛久大佛脚下，净土庭园内400棵樱花绽放。4月中旬还可欣赏地面的芝樱，形成双重花景。",
+                    imageUrl: "https://images.unsplash.com/photo-1504898770365-14aac6e6c30d?w=800&auto=format",
+                    officialUrl: "https://www.ushikudaibutsu.or.jp/"
+                },
+                { 
+                    id: 7, 
+                    title: "角馆武家屋敷通", 
+                    location: "秋田县仙北市", 
+                    bestTime: "观赏期：4月中旬～下旬", 
+                    desc: "保存完好的武家屋敷街道，400棵垂枝樱与黑色板墙相映成趣。起源于400年前大名妻子带来的3棵苗木，现多棵被指定为国家天然纪念物。",
+                    imageUrl: "https://images.unsplash.com/photo-1558531307-b5ecba6e5a6c?w=800&auto=format",
+                    officialUrl: "https://www.city.semboku.akita.jp/"
+                }
             ]
         };
 
@@ -341,6 +522,16 @@
             zh: '一生必看的樱花名胜'
         };
 
+        // 画像エラーハンドラ
+        function handleImageError(img) {
+            img.style.display = 'none';
+            const parent = img.parentNode;
+            const placeholder = document.createElement('div');
+            placeholder.className = 'image-error';
+            placeholder.textContent = '🌸 ' + (img.alt || '画像準備中');
+            parent.appendChild(placeholder);
+        }
+
         // 一覧表示
         function renderSpots(lang) {
             const data = spotsData[lang];
@@ -349,16 +540,26 @@
                 const card = document.createElement('div');
                 card.className = 'spot-card';
                 card.setAttribute('data-id', spot.id);
-                card.innerHTML = `
-                    <div class="card-img">
-                        <div class="placeholder">🌸 ${spot.title}</div>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">${spot.title}</div>
-                        <div class="card-location">${spot.location}</div>
-                        <div class="card-best-time">${spot.bestTime}</div>
-                    </div>
+                
+                const img = document.createElement('img');
+                img.src = spot.imageUrl;
+                img.alt = spot.title;
+                img.onerror = function() { handleImageError(this); };
+                
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'card-img';
+                imgDiv.appendChild(img);
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'card-content';
+                contentDiv.innerHTML = `
+                    <div class="card-title">${spot.title}</div>
+                    <div class="card-location">${spot.location}</div>
+                    <div class="card-best-time">${spot.bestTime}</div>
                 `;
+                
+                card.appendChild(imgDiv);
+                card.appendChild(contentDiv);
                 card.addEventListener('click', () => showDetail(spot.id));
                 container.appendChild(card);
             });
@@ -376,13 +577,30 @@
                 zh: '官方网站'
             };
 
-            detailContent.innerHTML = `
+            const img = document.createElement('img');
+            img.src = spot.imageUrl;
+            img.alt = spot.title;
+            img.className = 'detail-image';
+            img.onerror = function() { 
+                this.style.display = 'none';
+                const placeholder = document.createElement('div');
+                placeholder.className = 'image-error';
+                placeholder.textContent = '🌸 ' + spot.title;
+                this.parentNode.insertBefore(placeholder, this);
+            };
+
+            detailContent.innerHTML = '';
+            detailContent.appendChild(img);
+            
+            const textDiv = document.createElement('div');
+            textDiv.innerHTML = `
                 <div class="detail-title">${spot.title}</div>
                 <div class="detail-location">📍 ${spot.location}</div>
                 <div class="detail-best-time">${spot.bestTime}</div>
                 <div class="detail-desc">${spot.desc.replace(/\n/g, '<br>')}</div>
                 <a href="${spot.officialUrl}" class="official-link" target="_blank" rel="noopener">${officialLinkText[currentLang]} →</a>
             `;
+            detailContent.appendChild(textDiv);
 
             listView.style.display = 'none';
             detailView.classList.remove('hidden');
@@ -401,12 +619,11 @@
             currentSpotId = null;
         }
 
-        // 言語切替時は一覧に戻る
+        // 言語切替
         function changeLanguage(lang) {
             currentLang = lang;
             renderSpots(currentLang);
             if (currentSpotId) {
-                // 詳細表示中なら、そのスポットの詳細を更新（IDが存在する場合）
                 const spotExists = spotsData[currentLang].some(s => s.id === currentSpotId);
                 if (spotExists) {
                     showDetail(currentSpotId);
